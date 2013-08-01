@@ -55,14 +55,14 @@ public class EmbeddedHornetQTest
         ConnectionFactory cf = lookup.getConnectionFactory();
         Connection con = cf.createConnection();
 
-        Queue queue = lookup.getQueue("queue/queue1");
+        Queue queue = lookup.getQueue("queue1");
 
         log.info("queue=" + queue);
 
         Session session = con.createSession(false,Session.AUTO_ACKNOWLEDGE);
 
         MessageConsumer consumer = session.createConsumer(queue);
-
+        con.start();
         MessageProducer producer = session.createProducer(queue);
 
 
@@ -70,6 +70,7 @@ public class EmbeddedHornetQTest
         {
             TextMessage message = session.createTextMessage("message #" + i);
             producer.send(message);
+            log.info("Sent: " + message);
         }
 
         for (int i = 0; i < 10 ; i++)

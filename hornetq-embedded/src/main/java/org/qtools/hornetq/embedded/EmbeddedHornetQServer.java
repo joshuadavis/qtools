@@ -8,6 +8,7 @@ import org.hornetq.core.remoting.impl.netty.NettyAcceptorFactory;
 import org.hornetq.core.remoting.impl.netty.NettyConnectorFactory;
 import org.hornetq.core.server.HornetQServer;
 import org.hornetq.core.server.HornetQServers;
+import org.hornetq.jms.client.HornetQDestination;
 import org.hornetq.jms.server.config.ConnectionFactoryConfiguration;
 import org.hornetq.jms.server.config.JMSConfiguration;
 import org.hornetq.jms.server.config.impl.ConnectionFactoryConfigurationImpl;
@@ -109,7 +110,7 @@ public class EmbeddedHornetQServer
         for (String queueName : queueNames)
         {
             jmsConfig.getQueueConfigurations().add(
-                    new JMSQueueConfigurationImpl(queueName,null,false,"/jms/queue/"  + queueName));
+                    new JMSQueueConfigurationImpl(queueName,null,false, HornetQDestination.JMS_QUEUE_ADDRESS_PREFIX  + queueName));
         }
         // Create and start the server
         server = HornetQServers.newHornetQServer(configuration, null, false);
