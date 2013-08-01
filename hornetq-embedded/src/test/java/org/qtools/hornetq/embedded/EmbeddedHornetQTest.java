@@ -1,6 +1,7 @@
 package org.qtools.hornetq.embedded;
 
 
+import org.junit.Assert;
 import org.junit.Test;
 import org.qtools.core.JmsLookup;
 
@@ -31,8 +32,24 @@ public class EmbeddedHornetQTest
 
         con.close();
 
-        lookup.close();
 
         server.stop();
+
+        // Make sure we can't get a connection.
+        JMSException expected = null;
+        try
+        {
+            Connection con2 = cf.createConnection();
+
+            con2.close();
+
+        } catch (JMSException jmse)
+        {
+            expected = jmse;
+        }
+
+        Assert.assertNotNull(expected);
+
+        lookup.close();
     }
 }
