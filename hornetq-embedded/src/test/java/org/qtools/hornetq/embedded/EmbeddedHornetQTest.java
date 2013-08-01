@@ -3,6 +3,7 @@ package org.qtools.hornetq.embedded;
 
 import org.junit.Assert;
 import org.junit.Test;
+import org.qtools.core.JmsHelper;
 import org.qtools.core.JmsLookup;
 
 import javax.jms.Connection;
@@ -30,8 +31,7 @@ public class EmbeddedHornetQTest
 
         Connection con = cf.createConnection();
 
-        con.close();
-
+        JmsHelper.close(con);
 
         server.stop();
 
@@ -40,8 +40,7 @@ public class EmbeddedHornetQTest
         try
         {
             Connection con2 = cf.createConnection();
-
-            con2.close();
+            JmsHelper.close(con2);
 
         } catch (JMSException jmse)
         {

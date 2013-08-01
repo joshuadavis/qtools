@@ -6,14 +6,18 @@ import org.hornetq.core.config.impl.ConfigurationImpl;
 import org.hornetq.core.remoting.impl.invm.InVMAcceptorFactory;
 import org.hornetq.core.remoting.impl.netty.NettyAcceptorFactory;
 import org.hornetq.core.remoting.impl.netty.NettyConnectorFactory;
+import org.hornetq.core.server.HornetQServer;
+import org.hornetq.core.server.HornetQServers;
 import org.hornetq.jms.server.config.ConnectionFactoryConfiguration;
 import org.hornetq.jms.server.config.JMSConfiguration;
 import org.hornetq.jms.server.config.impl.ConnectionFactoryConfigurationImpl;
 import org.hornetq.jms.server.config.impl.JMSConfigurationImpl;
-import org.hornetq.jms.server.embedded.EmbeddedJMS;
+import org.hornetq.jms.server.impl.JMSServerManagerImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.management.MBeanServer;
+import javax.management.MBeanServerFactory;
 import java.util.ArrayList;
 import java.util.HashSet;
 
@@ -34,7 +38,9 @@ public class EmbeddedHornetQServer
     public static final String CONNECTION_FACTORY_BINDING = "/cf";
     public static final String JOURNAL_DATA_PATH = "target/data/journal";
 
-    private EmbeddedJMS server;
+    private HornetQServer server;
+    private JMSServerManagerImpl jmsServer;
+    private MBeanServer mbeanServer;
 
     public void start()
     {
@@ -87,25 +93,40 @@ public class EmbeddedHornetQServer
                 CONNECTION_FACTORY_NAME,
                 false, connectorNames,
                 CONNECTION_FACTORY_BINDING);
+
+        cfConfig.setRetryInterval(1000);
+        cfConfig.setRetryIntervalMultiplier(1.0);
+        cfConfig.setCallTimeout(30000);
+        cfConfig.setReconnectAttempts(-1);
+
         jmsConfig.getConnectionFactoryConfigurations().add(cfConfig);
 
+
+        mbeanServer = MBeanServerFactory.createMBeanServer();
+
         // Create and start the server
-        server = new EmbeddedJMS();
-        server.setConfiguration(configuration);
-        server.setJmsConfiguration(jmsConfig);
-        server.start();
+        server = HornetQServers.newHornetQServer(configuration,mbeanServer, false);
+        jmsServer = new JMSServerManagerImpl(server);
+        jmsServer.start();
+
         log.info("HornetQ Server started.");
     }
 
     private void doStop() throws Exception
     {
-        if (server != null)
+        if (jmsServer != null)
         {
             log.info("Stopping embedded HornetQ JMS...");
-            EmbeddedJMS s = server;
+            JMSServerManagerImpl s = jmsServer;
             server = null;
+            jmsServer = null;
             s.stop();
             log.info("HornetQ Server stopped.");
+        }
+        if (mbeanServer != null)
+        {
+            MBeanServerFactory.releaseMBeanServer(mbeanServer);
+            mbeanServer = null;
         }
     }
 
