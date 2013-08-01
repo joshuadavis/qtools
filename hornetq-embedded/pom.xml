@@ -21,7 +21,15 @@
     <dependencies>
         <dependency>
             <groupId>org.hornetq</groupId>
+            <artifactId>hornetq-commons</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.hornetq</groupId>
             <artifactId>hornetq-server</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.hornetq</groupId>
+            <artifactId>hornetq-jms-server</artifactId>
         </dependency>
         <dependency>
             <groupId>org.hornetq</groupId>
@@ -32,34 +40,22 @@
             <artifactId>hornetq-jms-client</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.hornetq</groupId>
-            <artifactId>hornetq-commons</artifactId>
-        </dependency>
-        <dependency>
             <groupId>io.netty</groupId>
             <artifactId>netty</artifactId>
         </dependency>
-<!--
-        <dependency>
-            <groupId>org.jboss.javaee</groupId>
-            <artifactId>jboss-jms-api</artifactId>
-        </dependency>
--->
         <dependency>
             <groupId>${parent.groupId}</groupId>
             <artifactId>qtools-core</artifactId>
             <version>${parent.version}</version>
         </dependency>
-
-        <!--
         <dependency>
-            <groupId>org.jboss.naming</groupId>
-            <artifactId>jnp-client</artifactId>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.jboss.spec.javax.jms</groupId>
-            <artifactId>jboss-jms-api_1.1_spec</artifactId>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-log4j12</artifactId>
+            <scope>test</scope>
         </dependency>
--->
     </dependencies>
 </project>

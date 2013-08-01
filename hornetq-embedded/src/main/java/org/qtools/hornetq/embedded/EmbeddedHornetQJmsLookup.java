@@ -30,7 +30,6 @@ public class EmbeddedHornetQJmsLookup implements JmsLookup
         serverLocator = HornetQClient.createServerLocatorWithoutHA(
                 new TransportConfiguration(InVMConnectorFactory.class.getName()));
         cf = new HornetQJMSConnectionFactory(serverLocator);
-
     }
 
     public ConnectionFactory getConnectionFactory()
@@ -46,5 +45,14 @@ public class EmbeddedHornetQJmsLookup implements JmsLookup
     public Topic getTopic(String name)
     {
         return new HornetQTopic(name);
+    }
+
+    public void close()
+    {
+        if (cf != null)
+            cf.close();
+
+        if (serverLocator != null)
+            serverLocator.close();
     }
 }

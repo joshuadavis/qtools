@@ -20,7 +20,17 @@
         <dependencies>
             <dependency>
                 <groupId>org.hornetq</groupId>
+                <artifactId>hornetq-commons</artifactId>
+                <version>${version.hornetq}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.hornetq</groupId>
                 <artifactId>hornetq-server</artifactId>
+                <version>${version.hornetq}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.hornetq</groupId>
+                <artifactId>hornetq-jms-server</artifactId>
                 <version>${version.hornetq}</version>
             </dependency>
             <dependency>
@@ -31,11 +41,6 @@
             <dependency>
                 <groupId>org.hornetq</groupId>
                 <artifactId>hornetq-jms-client</artifactId>
-                <version>${version.hornetq}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.hornetq</groupId>
-                <artifactId>hornetq-commons</artifactId>
                 <version>${version.hornetq}</version>
             </dependency>
             <dependency>
@@ -63,6 +68,30 @@
                 <artifactId>jboss-jms-api_1.1_spec</artifactId>
                 <version>1.0.0.Final</version>
             </dependency>
+            <dependency>
+                <groupId>junit</groupId>
+                <artifactId>junit</artifactId>
+                <version>4.11</version>
+            </dependency>
+            <dependency>
+                <groupId>org.slf4j</groupId>
+                <artifactId>slf4j-api</artifactId>
+                <version>1.7.2</version>
+            </dependency>
+            <dependency>
+                <groupId>org.slf4j</groupId>
+                <artifactId>slf4j-log4j12</artifactId>
+                <version>1.7.2</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
+
+    <dependencies>
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>4.11</version>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
 </project>

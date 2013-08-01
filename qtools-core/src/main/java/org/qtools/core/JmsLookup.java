@@ -18,4 +18,6 @@ public interface JmsLookup
     Queue getQueue(String name);
 
     Topic getTopic(String name);
+
+    void close();
 }
