@@ -62,8 +62,10 @@ public class EmbeddedHornetQTest
         Session session = con.createSession(false,Session.AUTO_ACKNOWLEDGE);
 
         MessageConsumer consumer = session.createConsumer(queue);
-        con.start();
         MessageProducer producer = session.createProducer(queue);
+
+        // Important, or nothing will be received.
+        con.start();
 
 
         for (int i = 0; i < 10 ; i++)
@@ -76,7 +78,9 @@ public class EmbeddedHornetQTest
         for (int i = 0; i < 10 ; i++)
         {
             TextMessage x = (TextMessage) consumer.receive(1000);
+            Assert.assertNotNull(x);
             log.info("Received: " + x);
+            Assert.assertEquals("message #" + i,x.getText());
         }
 
         JmsHelper.close(producer);
