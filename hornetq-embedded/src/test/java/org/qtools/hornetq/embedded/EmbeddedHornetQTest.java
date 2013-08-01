@@ -5,10 +5,10 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.qtools.core.JmsHelper;
 import org.qtools.core.JmsLookup;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import javax.jms.Connection;
-import javax.jms.ConnectionFactory;
-import javax.jms.JMSException;
+import javax.jms.*;
 
 /**
  * Tests the embedded HornetQ JMS server startup / lookup helpers.
@@ -19,19 +19,18 @@ import javax.jms.JMSException;
  */
 public class EmbeddedHornetQTest
 {
+    private static final Logger log = LoggerFactory.getLogger(EmbeddedHornetQTest.class);
+
     @Test
     public void testStartStop() throws JMSException
     {
         JmsLookup lookup = new EmbeddedHornetQJmsLookup();
 
         EmbeddedHornetQServer server = new EmbeddedHornetQServer();
+        server.addQueue("queue1");
         server.start();
 
-        ConnectionFactory cf = lookup.getConnectionFactory();
-
-        Connection con = cf.createConnection();
-
-        JmsHelper.close(con);
+        sendAFewMessages(lookup);
 
         server.stop();
 
@@ -39,8 +38,7 @@ public class EmbeddedHornetQTest
         JMSException expected = null;
         try
         {
-            Connection con2 = cf.createConnection();
-            JmsHelper.close(con2);
+            sendAFewMessages(lookup);
 
         } catch (JMSException jmse)
         {
@@ -50,5 +48,37 @@ public class EmbeddedHornetQTest
         Assert.assertNotNull(expected);
 
         lookup.close();
+    }
+
+    private void sendAFewMessages(JmsLookup lookup) throws JMSException
+    {
+        ConnectionFactory cf = lookup.getConnectionFactory();
+        Connection con = cf.createConnection();
+
+        Queue queue = lookup.getQueue("queue/queue1");
+
+        log.info("queue=" + queue);
+
+        Session session = con.createSession(false,Session.AUTO_ACKNOWLEDGE);
+
+        MessageConsumer consumer = session.createConsumer(queue);
+
+        MessageProducer producer = session.createProducer(queue);
+
+
+        for (int i = 0; i < 10 ; i++)
+        {
+            TextMessage message = session.createTextMessage("message #" + i);
+            producer.send(message);
+        }
+
+        for (int i = 0; i < 10 ; i++)
+        {
+            TextMessage x = (TextMessage) consumer.receive(1000);
+            log.info("Received: " + x);
+        }
+
+        JmsHelper.close(producer);
+        JmsHelper.close(consumer,session,con);
     }
 }

@@ -12,6 +12,7 @@ import org.hornetq.jms.server.config.ConnectionFactoryConfiguration;
 import org.hornetq.jms.server.config.JMSConfiguration;
 import org.hornetq.jms.server.config.impl.ConnectionFactoryConfigurationImpl;
 import org.hornetq.jms.server.config.impl.JMSConfigurationImpl;
+import org.hornetq.jms.server.config.impl.JMSQueueConfigurationImpl;
 import org.hornetq.jms.server.impl.JMSServerManagerImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,6 +21,7 @@ import javax.management.MBeanServer;
 import javax.management.MBeanServerFactory;
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.Set;
 
 /**
  * Helper class to start the embedded HornetQ JMS server.
@@ -31,16 +33,19 @@ import java.util.HashSet;
 public class EmbeddedHornetQServer
 {
     private static final Logger log = LoggerFactory.getLogger(EmbeddedHornetQServer.class);
-    public static final String CONNECTOR_NAME = "connector";
-    public static final String HORNET_Q_USER = "HornetQ_User";
-    public static final String HORNET_Q_PASSWORD = "HornetQizK00l";
-    public static final String CONNECTION_FACTORY_NAME = "cf";
-    public static final String CONNECTION_FACTORY_BINDING = "/cf";
-    public static final String JOURNAL_DATA_PATH = "target/data/journal";
+    private static final String CONNECTOR_NAME = "connector";
+    private static final String HORNET_Q_USER = "HornetQ_User";
+    private static final String HORNET_Q_PASSWORD = "HornetQizK00l";
+    private static final String CONNECTION_FACTORY_NAME = "cf";
+    private static final String CONNECTION_FACTORY_BINDING = "/cf";
+    private static final String JOURNAL_DATA_PATH = "target/data/journal";
+
+    private final Set<String> queueNames = new HashSet<String>();
+    private final Set<String> topicNames = new HashSet<String>();
 
     private HornetQServer server;
     private JMSServerManagerImpl jmsServer;
-    private MBeanServer mbeanServer;
+    private InVMNamingContext namingContext;
 
     public void start()
     {
@@ -101,12 +106,16 @@ public class EmbeddedHornetQServer
 
         jmsConfig.getConnectionFactoryConfigurations().add(cfConfig);
 
-
-        mbeanServer = MBeanServerFactory.createMBeanServer();
-
+        for (String queueName : queueNames)
+        {
+            jmsConfig.getQueueConfigurations().add(
+                    new JMSQueueConfigurationImpl(queueName,null,false,"/jms/queue/"  + queueName));
+        }
         // Create and start the server
-        server = HornetQServers.newHornetQServer(configuration,mbeanServer, false);
-        jmsServer = new JMSServerManagerImpl(server);
+        server = HornetQServers.newHornetQServer(configuration, null, false);
+        jmsServer = new JMSServerManagerImpl(server,jmsConfig);
+        namingContext = new InVMNamingContext();
+        jmsServer.setContext(namingContext);
         jmsServer.start();
 
         log.info("HornetQ Server started.");
@@ -114,6 +123,12 @@ public class EmbeddedHornetQServer
 
     private void doStop() throws Exception
     {
+        if (namingContext != null)
+        {
+            namingContext.close();
+            namingContext = null;
+        }
+
         if (jmsServer != null)
         {
             log.info("Stopping embedded HornetQ JMS...");
@@ -123,11 +138,7 @@ public class EmbeddedHornetQServer
             s.stop();
             log.info("HornetQ Server stopped.");
         }
-        if (mbeanServer != null)
-        {
-            MBeanServerFactory.releaseMBeanServer(mbeanServer);
-            mbeanServer = null;
-        }
+
     }
 
     public void stop()
@@ -144,5 +155,10 @@ public class EmbeddedHornetQServer
             log.error("Unexpected: " + e, e);
             throw new RuntimeException(e);
         }
+    }
+
+    public void addQueue(String queueName)
+    {
+        queueNames.add(queueName);
     }
 }
