@@ -11,7 +11,7 @@ import org.hornetq.core.server.HornetQServers;
 import java.util.HashSet;
 
 /**
- * TODO: Add class level comments.
+ * Helper class to start the embedded HornetQ JMS server.
  * <br>
  * User: Josh
  * Date: 7/26/13

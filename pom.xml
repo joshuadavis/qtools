@@ -7,7 +7,8 @@
   <version>0.1-SNAPSHOT</version>
     <modules>
         <module>hornetq-embedded</module>
-        <module>dep-mgmt</module>
+        <module>dep-mgmt-parent</module>
+        <module>qtools-core</module>
     </modules>
     <packaging>pom</packaging>
 
@@ -18,6 +19,4 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
   </properties>
 
-  <dependencies>
-  </dependencies>
 </project>
