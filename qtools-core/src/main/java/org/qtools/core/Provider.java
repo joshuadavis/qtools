@@ -10,7 +10,7 @@ package org.qtools.core;
 public interface Provider<T> {
 
     /**
-     * Produces an instance of {@code T}.
+     * Produces an instance of type T.
      */
     T get();
 }

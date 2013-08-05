@@ -30,7 +30,6 @@ public class BasicIoCTemplateTest
     @Before
     public void setUp()
     {
-        SLF4JBridgeHandler.install();
         env = new EmbeddedHornetQJmsEnvironment();
         final EmbeddedHornetQServer server = env.getServer();
         server.addQueue("queue1");

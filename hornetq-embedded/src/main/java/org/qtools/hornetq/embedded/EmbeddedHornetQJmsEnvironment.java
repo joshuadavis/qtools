@@ -1,7 +1,5 @@
 package org.qtools.hornetq.embedded;
 
-import org.qtools.core.JmsLookup;
-
 /**
  * Encapsulates the embedded hornetq JMS server and client (Lookup) in one object.
  * <br>

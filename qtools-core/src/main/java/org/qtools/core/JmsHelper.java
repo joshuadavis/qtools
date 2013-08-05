@@ -125,4 +125,15 @@ public class JmsHelper
             }
         };
     }
+
+    public static void sleep(long interval)
+    {
+        try
+        {
+            Thread.sleep(interval);
+        }
+        catch (InterruptedException ignore)
+        {
+        }
+    }
 }

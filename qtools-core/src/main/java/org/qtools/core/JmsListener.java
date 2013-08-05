@@ -1,6 +1,10 @@
 package org.qtools.core;
 
 import javax.jms.*;
+import java.util.concurrent.locks.Condition;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
@@ -13,27 +17,38 @@ import java.util.logging.Logger;
 public class JmsListener extends JmsAccess
 {
     private static final Logger log = Logger.getLogger(JmsListener.class.getName());
+    private static final long RECONNECT_INTERVAL = 5000;
 
     private final String name;
     private final boolean topic;
+    private final boolean reconnect;
+
+    private final Lock lock = new ReentrantLock();
+    private final Condition ready = lock.newCondition();
+
     private Connection con;
     private Session ses;
     private MessageConsumer consumer;
     private MessageListener delegate;
+    private boolean running;
 
-    public static JmsListener nonAuthNonTx(JmsLookup lookup,String name,boolean topic)
+    public static JmsListener nonAuthNonTx(JmsLookup lookup,String name,boolean topic,boolean reconnect)
     {
-        return new JmsListener(lookup,null,null,false, Session.AUTO_ACKNOWLEDGE,name,topic);
+        return new JmsListener(lookup,null,null,false, Session.AUTO_ACKNOWLEDGE,name,topic,reconnect);
     }
 
     public JmsListener(JmsLookup lookup,
                           String username, String password,
                           boolean transacted, int ackMode,
-                          String name,boolean topic)
+                          String name,
+                          boolean topic,
+                          boolean reconnect)
     {
         super(lookup, username, password, transacted, ackMode);
         this.name = name;
         this.topic = topic;
+        this.running = false;
+        this.reconnect = reconnect;
     }
 
     public void setDelegate(MessageListener messageListener)
@@ -43,29 +58,105 @@ public class JmsListener extends JmsAccess
 
     public void start()
     {
-       ConnectionFactory cf = getConnectionFactory();
+        boolean loop = true;
+        while (loop)
+        {
+            lock.lock();
+            try
+            {
+                doStart();
+                if (running)
+                {
+                    ready.signal();
+                    return;
+                }
+                loop = !running && reconnect;
+            }
+            finally
+            {
+                lock.unlock();
+            }
+
+            if (loop)
+            {
+                log.info("Unable to connect, waiting to reconnect...");
+                JmsHelper.sleep(RECONNECT_INTERVAL);
+            }
+        }
+    }
+
+    public void startNowait()
+    {
+        Thread t = new Thread(new Runnable()
+        {
+            public void run()
+            {
+                start();
+            }
+        });
+        t.start();
+    }
+
+    private void doStart()
+    {
+        if (running)
+            return;
         try
         {
+            ConnectionFactory cf = getConnectionFactory();
             Destination destination = topic ? getLookup().getTopic(name) : getLookup().getQueue(name);
-            con = getConnection(cf);
+            con = getConnection(cf);    // This will fail if the server isn't there.
             ses = createSession(con);
             consumer = ses.createConsumer(destination);
             consumer.setMessageListener(delegate);
             con.start();
-            log.info("Listener started.");
+            running = true;
         }
         catch (JMSException e)
         {
-            JmsHelper.close(con);
-            con = null;
+            if (!reconnect)
+                LoggerHelper.unexpectedError(log, e);
+            stop();
         }
     }
 
     public void stop()
     {
-        JmsHelper.close(consumer,ses,con);
+        synchronized (this)
+        {
+            doStop();
+        }
+    }
+
+    private void doStop()
+    {
+        if (!running)
+            return;
+
+        JmsHelper.close(consumer, ses, con);
         consumer = null;
         ses = null;
         con = null;
+        running = false;
+    }
+
+    public void waitForReady() throws InterruptedException
+    {
+        lock.lock();
+        try
+        {
+            while (!running)
+            {
+                ready.await();
+            }
+        }
+        catch (InterruptedException e)
+        {
+            log.log(Level.SEVERE,"Interrupted!" + e,e);
+            throw e;
+        }
+        finally {
+            lock.unlock();
+        }
     }
 }

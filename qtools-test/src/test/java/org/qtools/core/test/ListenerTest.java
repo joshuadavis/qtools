@@ -47,12 +47,12 @@ public class ListenerTest
     public void testQueueListener() throws Exception
     {
         // Create a listener.
-        JmsListener listener = JmsListener.nonAuthNonTx(env.getLookup(),"queue1",false);
+        JmsListener listener = JmsListener.nonAuthNonTx(env.getLookup(),"queue1",false,false);
         listener.setDelegate(new MessageListener()
         {
             public void onMessage(Message message)
             {
-                log.info("onMessage: " + message);
+                log.info("queue - onMessage: " + message);
             }
         });
 
@@ -73,9 +73,42 @@ public class ListenerTest
                 log.info("Messages sent.");
             }
         });
-
         Thread.sleep(1000);
-
         listener.stop();
     }
+
+    @Test
+    public void testTopicListener() throws Exception
+    {
+        // Create a listener.
+        JmsListener listener = JmsListener.nonAuthNonTx(env.getLookup(),"topic1",true,false);
+        listener.setDelegate(new MessageListener()
+        {
+            public void onMessage(Message message)
+            {
+                log.info("topic - onMessage: " + message);
+            }
+        });
+
+        listener.start();
+
+        // Send a message.
+        JmsConversation conversation = JmsConversation.nonAuthNonTx(env.getLookup());
+        conversation.doAction(new JmsConversation.Action()
+        {
+            public void go(JmsConversation.Context context) throws JMSException
+            {
+                MessageProducer producer = context.getTopicProducer("topic1");
+                for (int i = 0 ; i < 10 ; i++)
+                {
+                    TextMessage m = context.getSession().createTextMessage("this is #" + i+1);
+                    producer.send(m);
+                }
+                log.info("Messages sent.");
+            }
+        });
+        Thread.sleep(1000);
+        listener.stop();
+    }
+
 }

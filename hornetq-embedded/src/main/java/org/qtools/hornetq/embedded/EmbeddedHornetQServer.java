@@ -62,7 +62,6 @@ public class EmbeddedHornetQServer
 
     private void doStart() throws Exception
     {
-        log.info("Starting embedded HornetQ JMS...");
         // Create the Configuration, and set the properties accordingly
         Configuration configuration = new ConfigurationImpl();
         // we only need this for the server lock file
@@ -122,19 +121,15 @@ public class EmbeddedHornetQServer
         server.setConfiguration(configuration);
         server.setJmsConfiguration(jmsConfig);
         server.start();
-
-        log.info("HornetQ Server started.");
     }
 
     private void doStop() throws Exception
     {
         if (server != null)
         {
-            log.info("Stopping embedded HornetQ JMS...");
             EmbeddedJMS s = server;
             server = null;
             s.stop();
-            log.info("HornetQ Server stopped.");
         }
 
     }
