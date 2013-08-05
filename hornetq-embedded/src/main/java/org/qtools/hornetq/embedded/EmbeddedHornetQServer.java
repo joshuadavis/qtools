@@ -6,20 +6,16 @@ import org.hornetq.core.config.impl.ConfigurationImpl;
 import org.hornetq.core.remoting.impl.invm.InVMAcceptorFactory;
 import org.hornetq.core.remoting.impl.netty.NettyAcceptorFactory;
 import org.hornetq.core.remoting.impl.netty.NettyConnectorFactory;
-import org.hornetq.core.server.HornetQServer;
-import org.hornetq.core.server.HornetQServers;
 import org.hornetq.jms.client.HornetQDestination;
 import org.hornetq.jms.server.config.ConnectionFactoryConfiguration;
 import org.hornetq.jms.server.config.JMSConfiguration;
 import org.hornetq.jms.server.config.impl.ConnectionFactoryConfigurationImpl;
 import org.hornetq.jms.server.config.impl.JMSConfigurationImpl;
 import org.hornetq.jms.server.config.impl.JMSQueueConfigurationImpl;
-import org.hornetq.jms.server.impl.JMSServerManagerImpl;
+import org.hornetq.jms.server.embedded.EmbeddedJMS;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.management.MBeanServer;
-import javax.management.MBeanServerFactory;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Set;
@@ -44,9 +40,7 @@ public class EmbeddedHornetQServer
     private final Set<String> queueNames = new HashSet<String>();
     private final Set<String> topicNames = new HashSet<String>();
 
-    private HornetQServer server;
-    private JMSServerManagerImpl jmsServer;
-    private InVMNamingContext namingContext;
+    private EmbeddedJMS server;
 
     public void start()
     {
@@ -112,30 +106,22 @@ public class EmbeddedHornetQServer
             jmsConfig.getQueueConfigurations().add(
                     new JMSQueueConfigurationImpl(queueName,null,false, HornetQDestination.JMS_QUEUE_ADDRESS_PREFIX  + queueName));
         }
-        // Create and start the server
-        server = HornetQServers.newHornetQServer(configuration, null, false);
-        jmsServer = new JMSServerManagerImpl(server,jmsConfig);
-        namingContext = new InVMNamingContext();
-        jmsServer.setContext(namingContext);
-        jmsServer.start();
+
+        server = new EmbeddedJMS();
+        server.setConfiguration(configuration);
+        server.setJmsConfiguration(jmsConfig);
+        server.start();
 
         log.info("HornetQ Server started.");
     }
 
     private void doStop() throws Exception
     {
-        if (namingContext != null)
-        {
-            namingContext.close();
-            namingContext = null;
-        }
-
-        if (jmsServer != null)
+        if (server != null)
         {
             log.info("Stopping embedded HornetQ JMS...");
-            JMSServerManagerImpl s = jmsServer;
+            EmbeddedJMS s = server;
             server = null;
-            jmsServer = null;
             s.stop();
             log.info("HornetQ Server stopped.");
         }

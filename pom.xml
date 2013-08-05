@@ -9,6 +9,7 @@
         <module>hornetq-embedded</module>
         <module>dep-mgmt-parent</module>
         <module>qtools-core</module>
+        <module>qtools-test</module>
     </modules>
     <packaging>pom</packaging>
 
