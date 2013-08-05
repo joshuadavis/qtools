@@ -24,11 +24,14 @@ public class EmbeddedHornetQTest
     @Test
     public void testStartStop() throws JMSException
     {
-        JmsLookup lookup = new EmbeddedHornetQJmsLookup();
+        EmbeddedHornetQJmsEnvironment env = new EmbeddedHornetQJmsEnvironment();
 
-        EmbeddedHornetQServer server = new EmbeddedHornetQServer();
+        final EmbeddedHornetQServer server = env.getServer();
         server.addQueue("queue1");
         server.start();
+
+
+        final EmbeddedHornetQJmsLookup lookup = env.getLookup();
 
         sendAFewMessages(lookup);
 

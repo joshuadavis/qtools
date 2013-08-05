@@ -4,6 +4,8 @@ import javax.jms.Connection;
 import javax.jms.MessageConsumer;
 import javax.jms.MessageProducer;
 import javax.jms.Session;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * Helper methods for JMS
@@ -14,6 +16,7 @@ import javax.jms.Session;
  */
 public class JmsHelper
 {
+    private static final Logger log = Logger.getLogger(JmsHelper.class.getName());
     /**
      * Clean up JMS producer objects.  Typically used in a finally block.
      *
@@ -46,7 +49,8 @@ public class JmsHelper
             //noinspection EmptyCatchBlock
             try {
                 conn.stop();
-            } catch (Exception ignore) {
+            } catch (Exception e) {
+                LoggerHelper.unexpectedWarn(log,e);
             }
         }
     }

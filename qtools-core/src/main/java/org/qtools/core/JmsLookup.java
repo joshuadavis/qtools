@@ -1,6 +1,7 @@
 package org.qtools.core;
 
 import javax.jms.ConnectionFactory;
+import javax.jms.Destination;
 import javax.jms.Queue;
 import javax.jms.Topic;
 

@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE log4j:configuration SYSTEM "log4j.dtd">
+<log4j:configuration debug="false"
+                     xmlns:log4j='http://jakarta.apache.org/log4j/'>
+    <appender name="consoleAppender" class="org.apache.log4j.ConsoleAppender">
+        <layout class="org.apache.log4j.PatternLayout">
+            <param name="ConversionPattern" value="%d{ISO8601} [%t] %p %c{1} %x - %m%n"/>
+        </layout>
+    </appender>
+
+    <category name="org.hornetq">
+        <priority value="INFO"/>
+    </category>
+
+    <root>
+        <appender-ref ref="consoleAppender"/>
+    </root>
+</log4j:configuration>
