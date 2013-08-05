@@ -122,9 +122,14 @@ public class JmsListener extends JmsAccess
 
     public void stop()
     {
-        synchronized (this)
+        lock.lock();
+        try
         {
             doStop();
+        }
+        finally
+        {
+            lock.unlock();
         }
     }
 
@@ -132,7 +137,6 @@ public class JmsListener extends JmsAccess
     {
         if (!running)
             return;
-
         JmsHelper.close(consumer, ses, con);
         consumer = null;
         ses = null;
