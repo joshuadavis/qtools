@@ -16,4 +16,9 @@ public class LoggerHelper
     {
         log.log(Level.WARNING,"Unexpected: " + e, e);
     }
+
+    public static void unexpectedError(Logger log, Throwable e)
+    {
+        log.log(Level.SEVERE,"Unexpected: " + e, e);
+    }
 }

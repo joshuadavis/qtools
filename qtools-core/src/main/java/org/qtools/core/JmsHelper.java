@@ -1,9 +1,6 @@
 package org.qtools.core;
 
-import javax.jms.Connection;
-import javax.jms.MessageConsumer;
-import javax.jms.MessageProducer;
-import javax.jms.Session;
+import javax.jms.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -50,7 +47,7 @@ public class JmsHelper
             try {
                 conn.stop();
             } catch (Exception e) {
-                LoggerHelper.unexpectedWarn(log,e);
+                LoggerHelper.unexpectedWarn(log, e);
             }
         }
     }
@@ -93,5 +90,39 @@ public class JmsHelper
             } catch (Exception ignore) {
             }
         }
+    }
+
+    /**
+     * Get a destination provider for a specific queue.
+     * @param lookup the lookup interface
+     * @param name the queue name
+     * @return a destination provider that looks up this specific queue.
+     */
+    public static Provider<Destination> getQueueProvider(final JmsLookup lookup, final String name)
+    {
+        return new Provider<Destination>()
+        {
+            public Destination get()
+            {
+                return lookup.getQueue(name);
+            }
+        };
+    }
+
+    /**
+     * Get a destination provider for a specific topic.
+     * @param lookup the lookup interface
+     * @param name the topic name
+     * @return a destination provider that looks up this specific topic.
+     */
+    public static Provider<Destination> getTopicProvider(final JmsLookup lookup, final String name)
+    {
+        return new Provider<Destination>()
+        {
+            public Destination get()
+            {
+                return lookup.getTopic(name);
+            }
+        };
     }
 }

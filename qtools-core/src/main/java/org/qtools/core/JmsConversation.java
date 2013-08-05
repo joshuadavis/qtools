@@ -13,7 +13,7 @@ import java.util.logging.Logger;
  * Date: 8/5/13
  * Time: 12:13 PM
  */
-public class JmsConversation
+public class JmsConversation extends JmsAccess
 {
     private static final Logger log = Logger.getLogger(JmsConversation.class.getName());
 
@@ -24,18 +24,16 @@ public class JmsConversation
         MessageProducer getQueueProducer(String name) throws JMSException;
 
         MessageConsumer getQueueConsumer(String name) throws JMSException;
+
+        MessageProducer getTopicProducer(String name) throws JMSException;
+
+        MessageConsumer getTopicConsumer(String name) throws JMSException;
     }
 
     public static interface Action
     {
         void go(Context context) throws JMSException;
     }
-
-    private final JmsLookup lookup;
-    private final String username;
-    private final String password;
-    private final boolean transacted;
-    private final int ackMode;
 
     public static JmsConversation nonAuthNonTx(JmsLookup lookup)
     {
@@ -44,16 +42,8 @@ public class JmsConversation
 
     public JmsConversation(JmsLookup lookup, String username, String password, boolean transacted,int ackMode)
     {
-        if (lookup == null)
-            throw new IllegalArgumentException("lookup cannot be null!");
-        if (password != null && username == null)
-            throw new IllegalArgumentException("username cannot be null if password is provided!");
+        super(lookup, username, password, transacted, ackMode);
 
-        this.lookup = lookup;
-        this.username = username;
-        this.password = password;
-        this.transacted = transacted;
-        this.ackMode = ackMode;
     }
 
     private static class DestinationEntry
@@ -121,13 +111,12 @@ public class JmsConversation
 
         private DestinationEntry getQueueEntry(final String name)
         {
-            return getDestinationEntry(name, new Provider<Destination>()
-            {
-                public Destination get()
-                {
-                    return lookup.getQueue(name);
-                }
-            });
+            return getDestinationEntry(name, JmsHelper.getQueueProvider(lookup, name));
+        }
+
+        private DestinationEntry getTopicEntry(final String name)
+        {
+            return getDestinationEntry(name, JmsHelper.getTopicProvider(lookup, name));
         }
 
         public MessageProducer getQueueProducer(final String name) throws JMSException
@@ -139,6 +128,18 @@ public class JmsConversation
         public MessageConsumer getQueueConsumer(String name) throws JMSException
         {
             DestinationEntry entry = getQueueEntry(name);
+            return entry.getConsumer(ses);
+        }
+
+        public MessageProducer getTopicProducer(final String name) throws JMSException
+        {
+            DestinationEntry entry = getTopicEntry(name);
+            return entry.getProducer(ses);
+        }
+
+        public MessageConsumer getTopicConsumer(String name) throws JMSException
+        {
+            DestinationEntry entry = getTopicEntry(name);
             return entry.getConsumer(ses);
         }
 
@@ -158,18 +159,18 @@ public class JmsConversation
         }
     }
 
-    public void go(Action action)
+    public void doAction(Action action) throws JMSException
     {
-        final ConnectionFactory cf = lookup.getConnectionFactory();
+        final ConnectionFactory cf = getConnectionFactory();
         Connection con = null;
         Session ses = null;
         ContextImpl context = null;
         try
         {
-            con = (username == null) ? cf.createConnection() : cf.createConnection(username,password);
-            ses = con.createSession(transacted,ackMode);
+            con = getConnection(cf);
+            ses = createSession(con);
             con.start();
-            context = new ContextImpl(lookup,con,ses);
+            context = new ContextImpl(getLookup(),con,ses);
             action.go(context);
             context.close();
             con.stop();
@@ -177,7 +178,7 @@ public class JmsConversation
         catch (JMSException e)
         {
             log.log(Level.SEVERE,"Exception thrown during JmsConversation: " + e,e);
-            throw new RuntimeException(e);
+            throw e;
         }
         finally
         {
@@ -187,4 +188,5 @@ public class JmsConversation
             JmsHelper.close(con);
         }
     }
+
 }

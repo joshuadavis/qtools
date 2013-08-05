@@ -12,13 +12,14 @@ import org.hornetq.jms.server.config.JMSConfiguration;
 import org.hornetq.jms.server.config.impl.ConnectionFactoryConfigurationImpl;
 import org.hornetq.jms.server.config.impl.JMSConfigurationImpl;
 import org.hornetq.jms.server.config.impl.JMSQueueConfigurationImpl;
+import org.hornetq.jms.server.config.impl.TopicConfigurationImpl;
 import org.hornetq.jms.server.embedded.EmbeddedJMS;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.qtools.core.LoggerHelper;
 
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.logging.Logger;
 
 /**
  * Helper class to start the embedded HornetQ JMS server.
@@ -29,7 +30,8 @@ import java.util.Set;
  */
 public class EmbeddedHornetQServer
 {
-    private static final Logger log = LoggerFactory.getLogger(EmbeddedHornetQServer.class);
+    private static final Logger log = Logger.getLogger(EmbeddedHornetQServer.class.getName());
+
     private static final String CONNECTOR_NAME = "connector";
     private static final String HORNET_Q_USER = "HornetQ_User";
     private static final String HORNET_Q_PASSWORD = "HornetQizK00l";
@@ -53,7 +55,7 @@ public class EmbeddedHornetQServer
         }
         catch (Exception e)
         {
-            log.error("Unexpected: " + e, e);
+            LoggerHelper.unexpectedError(log, e);
             throw new RuntimeException(e);
         }
     }
@@ -104,7 +106,16 @@ public class EmbeddedHornetQServer
         for (String queueName : queueNames)
         {
             jmsConfig.getQueueConfigurations().add(
-                    new JMSQueueConfigurationImpl(queueName,null,false, HornetQDestination.JMS_QUEUE_ADDRESS_PREFIX  + queueName));
+                    new JMSQueueConfigurationImpl(
+                            queueName, null, false,
+                            HornetQDestination.JMS_QUEUE_ADDRESS_PREFIX + queueName));
+        }
+
+        for (String topicName : topicNames)
+        {
+            jmsConfig.getTopicConfigurations().add(
+                    new TopicConfigurationImpl(topicName)
+            );
         }
 
         server = new EmbeddedJMS();
@@ -139,7 +150,7 @@ public class EmbeddedHornetQServer
         }
         catch (Exception e)
         {
-            log.error("Unexpected: " + e, e);
+            LoggerHelper.unexpectedError(log, e);
             throw new RuntimeException(e);
         }
     }
@@ -147,5 +158,10 @@ public class EmbeddedHornetQServer
     public void addQueue(String queueName)
     {
         queueNames.add(queueName);
+    }
+
+    public void addTopic(String topicName)
+    {
+        topicNames.add(topicName);
     }
 }
