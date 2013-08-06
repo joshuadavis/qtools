@@ -10,6 +10,7 @@
         <module>dep-mgmt-parent</module>
         <module>qtools-core</module>
         <module>qtools-test</module>
+        <module>arq-test</module>
     </modules>
     <packaging>pom</packaging>
 
