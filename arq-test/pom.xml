@@ -69,6 +69,7 @@
                 </dependency>
             </dependencies>
         </profile>
+
         <profile>
             <id>arquillian-jbossas-managed</id>
             <activation>
