@@ -6,6 +6,13 @@
     <container qualifier="jbossas-managed" default="true">
         <configuration>
             <property name="jbossHome">target/jboss-as-7.1.1.Final</property>
+            <property name="serverConfig">test-standalone.xml</property>
         </configuration>
     </container>
+
+<!--
+    <container qualifier="jbossas-remote" default="true">
+    </container>
+-->
+
 </arquillian>

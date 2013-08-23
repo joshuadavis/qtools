@@ -13,7 +13,10 @@
     <packaging>jar</packaging>
 
     <name>arq-test</name>
-    <url>http://maven.apache.org</url>
+
+    <prerequisites>
+        <maven>2.2.1</maven>
+    </prerequisites>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -89,11 +92,6 @@
                     <version>7.1.1.Final</version>
                     <scope>test</scope>
                 </dependency>
-                <dependency>
-                    <groupId>org.jboss.arquillian.protocol</groupId>
-                    <artifactId>arquillian-protocol-servlet</artifactId>
-                    <scope>test</scope>
-                </dependency>
             </dependencies>
             <build>
                 <plugins>
@@ -121,8 +119,45 @@
                             </execution>
                         </executions>
                     </plugin>
+                    <plugin>
+                        <artifactId>maven-antrun-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <id>config</id>
+                                <phase>process-test-classes</phase>
+                                <goals>
+                                    <goal>run</goal>
+                                </goals>
+                                <configuration>
+                                    <target>
+                                        <property name="config.dir"
+                                                  value="${project.build.directory}/jboss-as-7.1.1.Final/standalone/configuration"/>
+                                        <echo>Copying files to ${config.dir} ...</echo>
+                                        <copy todir="${config.dir}">
+                                            <fileset dir="${project.basedir}/src/test/resources">
+                                                <include name="*-standalone.xml"/>
+                                            </fileset>
+                                        </copy>
+                                    </target>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
                 </plugins>
             </build>
+        </profile>
+
+        <profile>
+            <id>arquillian-jbossas-remote</id>
+            <!-- Arq will assume the app server is started some other way -->
+            <dependencies>
+                <dependency>
+                    <groupId>org.jboss.as</groupId>
+                    <artifactId>jboss-as-arquillian-container-remote</artifactId>
+                    <version>7.1.1.Final</version>
+                    <scope>test</scope>
+                </dependency>
+            </dependencies>
         </profile>
     </profiles>
 </project>
